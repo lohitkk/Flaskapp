@@ -1,22 +1,25 @@
 pipeline {
     agent any
+
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/lohitkkk/flaskapp.git'
+                git branch: 'main', url: 'https://github.com/lohittkk/Flaskapp.git'
             }
         }
+
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build('flaskapp:latest')
+                    sh 'docker build -t flaskapp .'
                 }
             }
         }
-        stage('Run Container') {
+
+        stage('Run Docker Container') {
             steps {
                 script {
-                    sh 'docker run -d -p 5000:5000 flaskapp:latest'
+                    sh 'docker run -d -p 5000:5000 flaskapp'
                 }
             }
         }
