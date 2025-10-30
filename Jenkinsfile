@@ -2,25 +2,35 @@ pipeline {
     agent any
 
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/lohitkk/Flaskapp.git'
+                git 'https://github.com/lohitkk/Flaskapp.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    bat 'docker build -t flaskapp .'
+                bat 'docker build -t lohitkk/flaskapp:latest .'
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    bat '''
+                    docker login -u %DOCKER_USER% -p %DOCKER_PASS%
+                    docker push lohitkk/flaskapp:latest
+                    '''
                 }
             }
         }
 
-        stage('Run Docker Container') {
+        stage('Deploy to Kubernetes') {
             steps {
-                script {
-                    bat 'docker run -d -p 5001:5000 flaskapp'
-                }
+                bat '''
+                kubectl apply -f k8s-deployment.yaml
+                kubectl apply -f k8s-service.yaml
+                '''
             }
         }
     }
