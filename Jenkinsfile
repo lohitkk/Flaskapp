@@ -7,11 +7,11 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/lohitkk/Flaskapp.git'
-            }
-        }
+     stage('Checkout') {
+    steps {
+        git branch: 'main', url: 'https://github.com/lohitkk/Flaskapp.git'
+    }
+}
 
         stage('Build Docker Image') {
             steps {
