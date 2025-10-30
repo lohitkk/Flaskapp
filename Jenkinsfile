@@ -18,18 +18,15 @@ pipeline {
                 bat 'docker build -t lohitkk/flaskapp:latest .'
             }
         }
-
-        stage('Push to Docker Hub') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials',
-                    usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    bat '''
-                    docker login -u %DOCKER_USER% -p %DOCKER_PASS%
-                    docker push lohitkk/flaskapp:latest
-                    '''
-                }
-            }
+stage('Push to Docker Hub') {
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
+            bat 'docker push lohitkk/flaskapp:latest'
         }
+    }
+}
+
 
         stage('Deploy to Kubernetes') {
             steps {
