@@ -11,7 +11,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    bat 'docker build -t flaskapp .'
+                    sh 'docker build -t flaskapp .'
                 }
             }
         }
@@ -19,7 +19,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    bat 'docker run -d -p 5000:5000 flaskapp'
+                    sh 'docker run -d -p 5000:5000 flaskapp'
                 }
             }
         }
