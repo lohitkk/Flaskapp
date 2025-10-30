@@ -13,19 +13,24 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-              bat 'docker build -t lohit3799/flaskapp:latest .
-            }
-        }
+     stage('Build Docker Image') {
+    steps {
+        bat 'docker build -t lohit3799/flaskapp:latest .'
+    }
+}
+
 stage('Push to Docker Hub') {
     steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-            bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
-            bat 'docker push lohit3799/flaskapp:latest'
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials',
+            usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            bat '''
+                docker login -u %DOCKER_USER% -p %DOCKER_PASS%
+                docker push lohit3799/flaskapp:latest
+            '''
         }
     }
 }
+
 
 
         stage('Deploy to Kubernetes') {
