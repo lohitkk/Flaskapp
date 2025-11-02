@@ -19,7 +19,7 @@ pipeline {
             steps {
                 script {
                     echo 'Building Docker image...'
-                    sh 'docker build -t $DOCKER_IMAGE:latest .'
+                    bat 'docker build -t %DOCKER_IMAGE%:latest .'
                 }
             }
         }
@@ -28,7 +28,9 @@ pipeline {
             steps {
                 script {
                     echo 'Logging into Docker Hub...'
-                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                    bat '''
+                    echo %DOCKERHUB_CREDENTIALS_PSW% | docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin
+                    '''
                 }
             }
         }
@@ -37,7 +39,7 @@ pipeline {
             steps {
                 script {
                     echo 'Pushing Docker image...'
-                    sh 'docker push $DOCKER_IMAGE:latest'
+                    bat 'docker push %DOCKER_IMAGE%:latest'
                 }
             }
         }
@@ -47,10 +49,10 @@ pipeline {
                 script {
                     echo 'Deploying to Kubernetes...'
                     withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                        sh '''
-                            kubectl --kubeconfig=$KUBECONFIG apply -f k8s/k8s-deployment.yaml
-                            kubectl --kubeconfig=$KUBECONFIG apply -f k8s/k8s-service.yaml
-                            kubectl --kubeconfig=$KUBECONFIG rollout status deployment flask-deployment
+                        bat '''
+                        kubectl --kubeconfig=%KUBECONFIG% apply -f k8s\\k8s-deployment.yaml
+                        kubectl --kubeconfig=%KUBECONFIG% apply -f k8s\\k8s-service.yaml
+                        kubectl --kubeconfig=%KUBECONFIG% rollout status deployment flask-deployment
                         '''
                     }
                 }
