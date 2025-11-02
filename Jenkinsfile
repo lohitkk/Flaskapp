@@ -2,16 +2,14 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-login')
-        DOCKER_IMAGE = "lohitkk/flaskapp"
-        KUBE_CONFIG = credentials('kubeconfig')
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
     }
 
     stages {
         stage('Checkout') {
             steps {
                 echo 'Cloning repository...'
-                git branch: 'main', url: 'https://github.com/lohitkk/Flaskapp.git'
+                git 'https://github.com/lohitkk/Flaskapp.git'
             }
         }
 
@@ -19,7 +17,7 @@ pipeline {
             steps {
                 script {
                     echo 'Building Docker image...'
-                    bat 'docker build -t %DOCKER_IMAGE%:latest .'
+                    bat 'docker build -t lohitkk/flaskapp:latest .'
                 }
             }
         }
@@ -28,9 +26,7 @@ pipeline {
             steps {
                 script {
                     echo 'Logging into Docker Hub...'
-                    bat '''
-                    echo %DOCKERHUB_CREDENTIALS_PSW% | docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin
-                    '''
+                    bat 'echo **** | docker login -u lohit3799 --password-stdin'
                 }
             }
         }
@@ -39,7 +35,7 @@ pipeline {
             steps {
                 script {
                     echo 'Pushing Docker image...'
-                    bat 'docker push %DOCKER_IMAGE%:latest'
+                    bat 'docker push lohitkk/flaskapp:latest'
                 }
             }
         }
@@ -48,24 +44,10 @@ pipeline {
             steps {
                 script {
                     echo 'Deploying to Kubernetes...'
-                    withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                        bat '''
-                        kubectl --kubeconfig=%KUBECONFIG% apply -f k8s\\k8s-deployment.yaml
-                        kubectl --kubeconfig=%KUBECONFIG% apply -f k8s\\k8s-service.yaml
-                        kubectl --kubeconfig=%KUBECONFIG% rollout status deployment flask-deployment
-                        '''
-                    }
+                    bat 'kubectl apply -f deployment.yaml'
+                    bat 'kubectl apply -f service.yaml'
                 }
             }
-        }
-    }
-
-    post {
-        success {
-            echo '✅ Deployment successful!'
-        }
-        failure {
-            echo '❌ Pipeline failed. Check the logs.'
         }
     }
 }
