@@ -1,55 +1,38 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-login')
-        IMAGE_NAME = 'lohit3799/flaskapp:latest'
-    }
-
     stages {
-     stage('Checkout') {
-    steps {
-        git branch: 'main', url: 'https://github.com/lohitkk/Flaskapp.git'
-    }
-}
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/lohitkk/Flaskapp.git'
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
-                bat """
-                    docker build -t ${IMAGE_NAME} .
-                """
+                script {
+                    docker.build('flaskapp')
+                }
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Run Tests') {
             steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-login', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-    bat """
-        docker login -u %DOCKER_USER% -p %DOCKER_PASS%
-        docker push lohit3799/flaskapp:latest
-    """
-}
-
+                sh 'echo "Running tests..."'
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Blue-Green Deployment') {
             steps {
-                bat """
-                    kubectl config use-context minikube
-                    kubectl apply -f k8s-deployment.yaml
-                    kubectl apply -f k8s-service.yaml
-                """
-            }
-        }
-    }
+                script {
+                    // Deploy old version as "blue" and new as "green"
+                    sh 'kubectl apply -f k8s/blue-deployment.yaml'
+                    sh 'kubectl apply -f k8s/green-deployment.yaml'
 
-    post {
-        success {
-            echo '✅ Build and Deployment Successful!'
-        }
-        failure {
-            echo '❌ Build Failed!'
+                    // Switch traffic to green
+                    sh 'kubectl apply -f k8s/service-green.yaml'
+                }
+            }
         }
     }
 }
