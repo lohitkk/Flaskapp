@@ -2,13 +2,6 @@ pipeline {
     agent any
 
     stages {
- stage('Checkout') {
-   steps {
-       git 'https://github.com/lohitkk/Flaskapp.git'
-   }
-}
-
-
         stage('Build Docker Image') {
             steps {
                 script {
