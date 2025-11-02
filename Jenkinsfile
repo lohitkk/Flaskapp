@@ -17,14 +17,17 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    echo '🐳 Building Docker image...'
-                    bat "docker build -t %DOCKER_IMAGE%:latest ."
-                }
-            }
+     stage('Docker Login + Build') {
+    steps {
+        script {
+            echo '🔐 Logging into Docker Hub before build...'
+            bat "echo %DOCKERHUB_CREDENTIALS_PSW% | docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin"
+            echo '🐳 Building Docker image...'
+            bat "docker build -t %DOCKER_IMAGE%:latest ."
         }
+    }
+}
+
 
         stage('Login to Docker Hub') {
             steps {
