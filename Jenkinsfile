@@ -1,9 +1,12 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
-    }
+ environment {
+    DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+    DOCKER_IMAGE = "lohitkk/flaskapp"
+    KUBE_CONFIG = credentials('kubeconfig')
+}
+
 
     stages {
         stage('Checkout') {
