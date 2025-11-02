@@ -1,24 +1,27 @@
 pipeline {
     agent any
-environment {
-    DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
-}
 
-
+    environment {
+        // Jenkins credential IDs
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')   // Docker Hub login credentials
+        KUBE_CONFIG = credentials('kubeconfig')                        // Kubeconfig file credential
+        DOCKER_IMAGE = "lohitkk/flaskapp"                              // Your Docker Hub repo name
+    }
 
     stages {
-        stage('Checkout') {
+
+        stage('Checkout Code') {
             steps {
-                echo 'Cloning repository...'
-                git 'https://github.com/lohitkk/Flaskapp.git'
+                echo '📥 Cloning the repository...'
+                git branch: 'main', url: 'https://github.com/lohitkk/Flaskapp.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    echo 'Building Docker image...'
-                    bat 'docker build -t lohitkk/flaskapp:latest .'
+                    echo '🐳 Building Docker image...'
+                    bat "docker build -t %DOCKER_IMAGE%:latest ."
                 }
             }
         }
@@ -26,17 +29,17 @@ environment {
         stage('Login to Docker Hub') {
             steps {
                 script {
-                    echo 'Logging into Docker Hub...'
-                    bat 'echo **** | docker login -u lohit3799 --password-stdin'
+                    echo '🔐 Logging into Docker Hub...'
+                    bat "echo %DOCKERHUB_CREDENTIALS_PSW% | docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin"
                 }
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Push Docker Image') {
             steps {
                 script {
-                    echo 'Pushing Docker image...'
-                    bat 'docker push lohitkk/flaskapp:latest'
+                    echo '🚀 Pushing Docker image to Docker Hub...'
+                    bat "docker push %DOCKER_IMAGE%:latest"
                 }
             }
         }
@@ -44,11 +47,25 @@ environment {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    echo 'Deploying to Kubernetes...'
-                    bat 'kubectl apply -f deployment.yaml'
-                    bat 'kubectl apply -f service.yaml'
+                    echo '⚙️ Deploying to Kubernetes cluster...'
+                    withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                        bat '''
+                        kubectl --kubeconfig=%KUBECONFIG% apply -f k8s-deployment.yaml
+                        kubectl --kubeconfig=%KUBECONFIG% apply -f k8s-service.yaml
+                        kubectl --kubeconfig=%KUBECONFIG% rollout status deployment flask-deployment
+                        '''
+                    }
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Deployment successful!'
+        }
+        failure {
+            echo '❌ Pipeline failed. Check logs for details.'
         }
     }
 }
