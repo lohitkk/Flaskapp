@@ -1,18 +1,20 @@
-# Use Python base image
+# Use official Python base image
 FROM python:3.10-slim
 
 # Set working directory
 WORKDIR /app
 
-# Copy requirements and install dependencies
+# Copy dependencies
 COPY requirements.txt .
+
+# Install dependencies
 RUN pip install -r requirements.txt
 
-# Copy the app source code
+# Copy project files
 COPY . .
 
-# Expose Flask port
+# Expose port
 EXPOSE 5000
 
-# Run the app
+# Command to run the app
 CMD ["python", "app.py"]
