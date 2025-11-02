@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-login')   // Jenkins credential ID for Docker Hub
-        DOCKER_IMAGE = "lohitkk/flaskapp"                         // Replace with your Docker Hub repo
-        KUBE_CONFIG = credentials('kubeconfig')                   // Jenkins credential ID for kubeconfig file
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-login')
+        DOCKER_IMAGE = "lohitkk/flaskapp"
+        KUBE_CONFIG = credentials('kubeconfig')
     }
 
     stages {
@@ -48,8 +48,8 @@ pipeline {
                     echo 'Deploying to Kubernetes...'
                     withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                         sh '''
-                            kubectl --kubeconfig=$KUBECONFIG apply -f k8s-deployment.yaml
-                            kubectl --kubeconfig=$KUBECONFIG apply -f k8s-service.yaml
+                            kubectl --kubeconfig=$KUBECONFIG apply -f k8s/k8s-deployment.yaml
+                            kubectl --kubeconfig=$KUBECONFIG apply -f k8s/k8s-service.yaml
                             kubectl --kubeconfig=$KUBECONFIG rollout status deployment flask-deployment
                         '''
                     }
